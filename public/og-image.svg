@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#FAF9F6"/>
+  <rect x="48" y="48" width="1104" height="534" rx="28" fill="#FFFFFF" stroke="#E6E4DD" stroke-width="2"/>
+  <rect x="96" y="102" width="290" height="40" rx="20" fill="#ECFDF5" stroke="#A7F3D0"/>
+  <text x="120" y="128" fill="#065F46" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700">POWERED BY ACEPREP • INDIA</text>
+  <text x="96" y="232" fill="#0F172A" font-family="system-ui, -apple-system, sans-serif" font-size="60" font-weight="800">PlacementPrep India</text>
+  <text x="96" y="294" fill="#0D7A5F" font-family="system-ui, -apple-system, sans-serif" font-size="34" font-weight="700">Voice-Based AI Mock Interviews &amp; Rubric Scoring</text>
+  <text x="96" y="362" fill="#475569" font-family="system-ui, -apple-system, sans-serif" font-size="24">9 CS &amp; HR Tracks • Resume-Aware Follow-Ups • 0–10 Transparent Rubric • Free 24/7</text>
+  <rect x="96" y="432" width="230" height="68" rx="14" fill="#0D7A5F"/>
+  <text x="130" y="474" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700">Start Free Mock</text>
+  <rect x="350" y="432" width="240" height="68" rx="14" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
+  <text x="382" y="474" fill="#B45309" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700">placementprepind.online</text>
+</svg>

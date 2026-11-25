@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: #faf9f6;
+    color: #0f172a;
+  }
+
+  body {
+    background-color: #faf9f6;
+    color: #0f172a;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* WCAG 2.1 Level AA visible keyboard focus */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible {
+    outline: 3px solid #0d7a5f;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: #0d7a5f;
+  color: #ffffff;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  border-radius: 0 0 0.5rem 0;
+}
+
+.skip-link:focus {
+  left: 0;
+}
