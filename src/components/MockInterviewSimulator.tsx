@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { INTERVIEW_TRACKS, type TrackQuestion } from "@/data/tracks";
 import { SITE_CONFIG } from "@/lib/site";
+import { trackEvent } from "@/lib/analytics";
 
 interface EvaluationResult {
   accuracy: number;
@@ -34,14 +36,17 @@ interface EvaluationResult {
 interface SpeechRecognitionAlternativeLike {
   transcript: string;
 }
+
 interface SpeechRecognitionResultLike {
   isFinal: boolean;
   0: SpeechRecognitionAlternativeLike;
 }
+
 interface SpeechRecognitionEventLike {
   resultIndex: number;
   results: ArrayLike<SpeechRecognitionResultLike>;
 }
+
 interface SpeechRecognitionLike {
   continuous: boolean;
   interimResults: boolean;
@@ -69,7 +74,9 @@ function evaluateAnswer(
       .replace(/[^a-z0-9\s+]/g, " ")
       .split(/\s+/)
       .filter((t) => t.length > 2);
+
     if (tokens.length === 0) return lower.includes(concept.toLowerCase());
+
     return tokens.some((tok) => lower.includes(tok));
   });
 
@@ -82,7 +89,6 @@ function evaluateAnswer(
       ? matchedConcepts.length / question.keyConcepts.length
       : 0;
 
-  // Trade-off & reasoning markers
   const reasoningMarkers = [
     "because",
     "trade-off",
@@ -103,9 +109,11 @@ function evaluateAnswer(
     "situation",
     "action",
   ];
-  const reasoningHits = reasoningMarkers.filter((m) => lower.includes(m)).length;
 
-  // Structure / signposting markers
+  const reasoningHits = reasoningMarkers.filter((m) =>
+    lower.includes(m)
+  ).length;
+
   const structureMarkers = [
     "first",
     "second",
@@ -120,15 +128,22 @@ function evaluateAnswer(
     "result",
     "in practice",
   ];
-  const structureHits = structureMarkers.filter((m) => lower.includes(m)).length;
+
+  const structureHits = structureMarkers.filter((m) =>
+    lower.includes(m)
+  ).length;
 
   const lengthFactor =
     wordCount >= 45 ? 1 : wordCount >= 25 ? 0.78 : wordCount >= 12 ? 0.52 : 0.25;
 
   const accuracy = Math.min(
     10,
-    Math.max(1, Math.round((conceptRatio * 7.5 + lengthFactor * 2.5) * 10) / 10)
+    Math.max(
+      1,
+      Math.round((conceptRatio * 7.5 + lengthFactor * 2.5) * 10) / 10
+    )
   );
+
   const depth = Math.min(
     10,
     Math.max(
@@ -141,6 +156,7 @@ function evaluateAnswer(
       ) / 10
     )
   );
+
   const structure = Math.min(
     10,
     Math.max(
@@ -164,14 +180,21 @@ function evaluateAnswer(
       `Covered ${matchedConcepts.length} of ${question.keyConcepts.length} core concepts (${matchedConcepts.slice(0, 3).join(", ")}).`
     );
   }
+
   if (reasoningHits >= 2) {
     strengths.push("Good use of causal reasoning and trade-off language.");
   }
+
   if (wordCount >= 40) {
-    strengths.push(`Substantive spoken/typed length (${wordCount} words) with clear detail.`);
+    strengths.push(
+      `Substantive spoken/typed length (${wordCount} words) with clear detail.`
+    );
   }
+
   if (strengths.length === 0) {
-    strengths.push("Direct, concise opening attempt — expand with one concrete example to boost depth.");
+    strengths.push(
+      "Direct, concise opening attempt — expand with one concrete example to boost depth."
+    );
   }
 
   if (missedConcepts.length > 0) {
@@ -179,13 +202,21 @@ function evaluateAnswer(
       `Explicitly weave in missing key concepts: ${missedConcepts.slice(0, 3).join(", ")}.`
     );
   }
+
   if (isHrTrack && !lower.includes("result") && !lower.includes("impact")) {
-    improvements.push("Close your STAR answer with a measurable Result (metrics, test count, or user outcome).");
+    improvements.push(
+      "Close your STAR answer with a measurable Result (metrics, test count, or user outcome)."
+    );
   } else if (reasoningHits < 2) {
-    improvements.push("Explain WHY your approach works and mention one trade-off or edge case.");
+    improvements.push(
+      "Explain WHY your approach works and mention one trade-off or edge case."
+    );
   }
+
   if (wordCount < 35) {
-    improvements.push("Aim for a 60–90 second spoken explanation (~60–130 words) using headline -> mechanism -> example.");
+    improvements.push(
+      "Aim for a 60–90 second spoken explanation (~60–130 words) using headline -> mechanism -> example."
+    );
   }
 
   return {
@@ -220,10 +251,14 @@ export function MockInterviewSimulator({
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
-  const [focusEvents, setFocusEvents] = useState({ tabBlur: 0, paste: 0 });
+  const [focusEvents, setFocusEvents] = useState({
+    tabBlur: 0,
+    paste: 0,
+  });
 
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const shouldRestartRef = useRef(false);
+  const hasTrackedInterviewStartRef = useRef(false);
 
   const track = useMemo(
     () =>
@@ -234,29 +269,48 @@ export function MockInterviewSimulator({
 
   const question = track.questions[questionIndex % track.questions.length];
 
+  const trackInterviewStart = (inputMode: "voice" | "text") => {
+    if (hasTrackedInterviewStartRef.current) return;
+
+    trackEvent("start_mock_interview", {
+      track_name: track.name,
+      track_slug: track.slug,
+      input_mode: inputMode,
+      simulator_type: compact ? "homepage_demo" : "full_simulator",
+    });
+
+    hasTrackedInterviewStartRef.current = true;
+  };
+
   useEffect(() => {
     const win = window as unknown as {
       SpeechRecognition?: new () => SpeechRecognitionLike;
       webkitSpeechRecognition?: new () => SpeechRecognitionLike;
     };
+
     if (!win.SpeechRecognition && !win.webkitSpeechRecognition) {
       setSpeechSupported(false);
       setMode("text");
     }
   }, []);
 
-  // FR9: Informational focus-event tracking (tab blur)
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden) {
-        setFocusEvents((prev) => ({ ...prev, tabBlur: prev.tabBlur + 1 }));
+        setFocusEvents((prev) => ({
+          ...prev,
+          tabBlur: prev.tabBlur + 1,
+        }));
       }
     };
+
     document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
       shouldRestartRef.current = false;
       recognitionRef.current?.stop();
+
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
@@ -275,15 +329,20 @@ export function MockInterviewSimulator({
       SpeechRecognition?: new () => SpeechRecognitionLike;
       webkitSpeechRecognition?: new () => SpeechRecognitionLike;
     };
+
     const SpeechCtor = win.SpeechRecognition || win.webkitSpeechRecognition;
+
     if (!SpeechCtor) {
       setSpeechSupported(false);
       setMode("text");
-      setStatusMessage("Speech recognition is not supported in this browser — switched to typed-answer mode.");
+      setStatusMessage(
+        "Speech recognition is not supported in this browser — switched to typed-answer mode."
+      );
       return;
     }
 
     setStatusMessage(null);
+
     const recognition = new SpeechCtor();
     recognition.continuous = true;
     recognition.interimResults = true;
@@ -292,17 +351,21 @@ export function MockInterviewSimulator({
     recognition.onresult = (event) => {
       let finalChunk = "";
       let liveChunk = "";
+
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const chunk = event.results[i][0]?.transcript || "";
+
         if (event.results[i].isFinal) {
           finalChunk += `${chunk} `;
         } else {
           liveChunk += chunk;
         }
       }
+
       if (finalChunk.trim()) {
         setAnswer((prev) => `${prev}${prev ? " " : ""}${finalChunk.trim()}`);
       }
+
       setInterimText(liveChunk);
     };
 
@@ -310,12 +373,13 @@ export function MockInterviewSimulator({
       if (err.error === "not-allowed") {
         shouldRestartRef.current = false;
         setIsListening(false);
-        setStatusMessage("Microphone permission denied — you can continue right away in Typed-Answer Mode.");
+        setStatusMessage(
+          "Microphone permission denied — you can continue right away in Typed-Answer Mode."
+        );
         setMode("text");
       }
     };
 
-    // FR4 / R1: Auto-restart on silence timeout if user is still recording
     recognition.onend = () => {
       if (shouldRestartRef.current) {
         try {
@@ -330,32 +394,52 @@ export function MockInterviewSimulator({
 
     recognitionRef.current = recognition;
     shouldRestartRef.current = true;
-    setIsListening(true);
-    recognition.start();
+
+    try {
+      recognition.start();
+      setIsListening(true);
+      trackInterviewStart("voice");
+    } catch {
+      shouldRestartRef.current = false;
+      setIsListening(false);
+      setStatusMessage(
+        "Could not start microphone recording. Please try again or use Typed Mode."
+      );
+    }
   };
 
   const speakText = (text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setStatusMessage("Browser speech synthesis is unavailable on this device.");
+    if (
+      typeof window === "undefined" ||
+      !("speechSynthesis" in window)
+    ) {
+      setStatusMessage(
+        "Browser speech synthesis is unavailable on this device."
+      );
       return;
     }
+
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
       return;
     }
+
     window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-IN";
     utterance.rate = 0.98;
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
+
     setIsSpeaking(true);
     window.speechSynthesis.speak(utterance);
   };
 
   const handleTrackChange = (slug: string) => {
     stopListening();
+    hasTrackedInterviewStartRef.current = false;
     setSelectedSlug(slug);
     setQuestionIndex(0);
     setAnswer("");
@@ -373,11 +457,16 @@ export function MockInterviewSimulator({
 
   const handleScore = () => {
     stopListening();
+
     const combined = `${answer} ${interimText}`.trim();
+
     if (combined.length < 8) {
-      setStatusMessage("Speak or type at least a short explanation before scoring.");
+      setStatusMessage(
+        "Speak or type at least a short explanation before scoring."
+      );
       return;
     }
+
     setStatusMessage(null);
     setAnswer(combined);
     setInterimText("");
@@ -386,6 +475,7 @@ export function MockInterviewSimulator({
   };
 
   const primarySkill = resumeSkill.split(",")[0]?.trim();
+
   const resumeAwareFollowUp = primarySkill
     ? `${question.adaptiveFollowUp} (Resume probe: how does this apply to your ${primarySkill} project?)`
     : question.adaptiveFollowUp;
@@ -398,6 +488,7 @@ export function MockInterviewSimulator({
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
             INTERACTIVE BROWSER DEMO • ZERO INSTALL
           </span>
+
           <h3 className="mt-2 text-xl font-extrabold text-ink sm:text-2xl">
             Try a Spoken or Typed Mock Interview Right Now
           </h3>
@@ -421,6 +512,7 @@ export function MockInterviewSimulator({
             <Mic className="h-3.5 w-3.5" aria-hidden="true" />
             Voice Mode
           </button>
+
           <button
             type="button"
             onClick={() => {
@@ -439,7 +531,6 @@ export function MockInterviewSimulator({
         </div>
       </div>
 
-      {/* Controls: Track selector & optional resume skills */}
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <div>
           <label
@@ -448,6 +539,7 @@ export function MockInterviewSimulator({
           >
             1. Select Placement Track (9 Built-In)
           </label>
+
           <select
             id="sim-track"
             value={selectedSlug}
@@ -469,11 +561,13 @@ export function MockInterviewSimulator({
           >
             2. Resume Skill Context (Optional)
           </label>
+
           <div className="relative mt-1.5">
             <FileText
               className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-ink-subtle"
               aria-hidden="true"
             />
+
             <input
               id="sim-resume"
               type="text"
@@ -486,18 +580,20 @@ export function MockInterviewSimulator({
         </div>
       </div>
 
-      {/* Active Question Card */}
       <div className="mt-5 rounded-2xl border border-brand-200 bg-brand-50/60 p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="rounded-md bg-brand-700 px-2.5 py-0.5 font-mono text-xs font-semibold text-white">
               {track.shortName}
             </span>
+
             <span className="rounded-md bg-white px-2.5 py-0.5 font-mono text-xs font-semibold text-ink-muted ring-1 ring-border">
               {question.difficulty}
             </span>
+
             <span className="font-mono text-xs text-ink-subtle">
-              Q{(questionIndex % track.questions.length) + 1} / {track.questions.length}
+              Q{(questionIndex % track.questions.length) + 1} /{" "}
+              {track.questions.length}
             </span>
           </div>
 
@@ -519,6 +615,7 @@ export function MockInterviewSimulator({
                 </>
               )}
             </button>
+
             <button
               type="button"
               onClick={handleNextQuestion}
@@ -535,18 +632,25 @@ export function MockInterviewSimulator({
         </p>
       </div>
 
-      {/* Answer Input Area */}
       <div className="mt-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <label htmlFor="sim-answer" className="text-xs font-bold uppercase tracking-wider text-ink-subtle">
-            Your Answer Transcript {mode === "voice" ? "(Live Speech-to-Text + Editable)" : "(Typed Accessibility Mode)"}
+          <label
+            htmlFor="sim-answer"
+            className="text-xs font-bold uppercase tracking-wider text-ink-subtle"
+          >
+            Your Answer Transcript{" "}
+            {mode === "voice"
+              ? "(Live Speech-to-Text + Editable)"
+              : "(Typed Accessibility Mode)"}
           </label>
+
           <span
             className="inline-flex items-center gap-1.5 font-mono text-[11px] text-ink-subtle"
             title="Informational session telemetry (FR9) — never punitive"
           >
             <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-            Focus log (info only): {focusEvents.tabBlur} blurs • {focusEvents.paste} pastes
+            Focus log (info only): {focusEvents.tabBlur} blurs •{" "}
+            {focusEvents.paste} pastes
           </span>
         </div>
 
@@ -555,11 +659,20 @@ export function MockInterviewSimulator({
           rows={compact ? 4 : 5}
           value={answer + (interimText ? ` ${interimText}` : "")}
           onChange={(e) => {
+            const value = e.target.value;
+
+            if (value.trim()) {
+              trackInterviewStart("text");
+            }
+
             setInterimText("");
-            setAnswer(e.target.value);
+            setAnswer(value);
           }}
           onPaste={() =>
-            setFocusEvents((prev) => ({ ...prev, paste: prev.paste + 1 }))
+            setFocusEvents((prev) => ({
+              ...prev,
+              paste: prev.paste + 1,
+            }))
           }
           placeholder={
             mode === "voice"
@@ -617,6 +730,7 @@ export function MockInterviewSimulator({
               setInterimText("");
               setEvaluation(null);
               setShowFollowUp(false);
+              hasTrackedInterviewStartRef.current = false;
             }}
             className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm font-semibold text-ink-muted hover:text-ink"
           >
@@ -626,7 +740,6 @@ export function MockInterviewSimulator({
         </div>
       </div>
 
-      {/* Diagnostic Rubric Report */}
       {evaluation && (
         <div className="mt-6 space-y-5 rounded-2xl border border-border bg-canvas p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -634,12 +747,18 @@ export function MockInterviewSimulator({
               <h4 className="text-base font-extrabold text-ink">
                 Instant Diagnostic Rubric Preview
               </h4>
+
               <p className="text-xs text-ink-subtle">
-                Formative coaching estimate ({evaluation.wordCount} words). Launch AcePrep for full Groq Llama 3.3 70B evaluation.
+                Formative coaching estimate ({evaluation.wordCount} words).
+                Launch AcePrep for full Groq Llama 3.3 70B evaluation.
               </p>
             </div>
+
             <div className="rounded-xl bg-brand-700 px-4 py-2 text-center text-white">
-              <div className="font-mono text-xl font-extrabold">{evaluation.overall}/10</div>
+              <div className="font-mono text-xl font-extrabold">
+                {evaluation.overall}/10
+              </div>
+
               <div className="text-[10px] font-semibold uppercase tracking-wider text-brand-100">
                 Composite
               </div>
@@ -649,17 +768,32 @@ export function MockInterviewSimulator({
           <div className="grid gap-3 sm:grid-cols-3">
             {[
               {
-                label: track.slug === "hr" ? "STAR Structure" : "Technical Accuracy",
+                label:
+                  track.slug === "hr"
+                    ? "STAR Structure"
+                    : "Technical Accuracy",
                 score: evaluation.accuracy,
               },
-              { label: "Depth & Trade-Offs", score: evaluation.depth },
-              { label: "Communication Structure", score: evaluation.structure },
+              {
+                label: "Depth & Trade-Offs",
+                score: evaluation.depth,
+              },
+              {
+                label: "Communication Structure",
+                score: evaluation.structure,
+              },
             ].map((item) => (
-              <div key={item.label} className="rounded-xl border border-border bg-white p-3.5">
+              <div
+                key={item.label}
+                className="rounded-xl border border-border bg-white p-3.5"
+              >
                 <div className="flex items-center justify-between text-xs font-bold text-ink-muted">
                   <span>{item.label}</span>
-                  <span className="font-mono text-sm text-brand-800">{item.score}/10</span>
+                  <span className="font-mono text-sm text-brand-800">
+                    {item.score}/10
+                  </span>
                 </div>
+
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-brand-50">
                   <div
                     className="h-full rounded-full bg-brand-600 transition-all"
@@ -675,6 +809,7 @@ export function MockInterviewSimulator({
               <h5 className="text-xs font-bold uppercase tracking-wider text-brand-800">
                 Strengths Detected
               </h5>
+
               <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-ink-muted">
                 {evaluation.strengths.map((s, idx) => (
                   <li key={idx}>• {s}</li>
@@ -686,6 +821,7 @@ export function MockInterviewSimulator({
               <h5 className="text-xs font-bold uppercase tracking-wider text-saffron-700">
                 Actionable Improvements
               </h5>
+
               <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-ink-muted">
                 {evaluation.improvements.map((s, idx) => (
                   <li key={idx}>• {s}</li>
@@ -699,9 +835,14 @@ export function MockInterviewSimulator({
               <div className="font-mono text-[11px] font-bold uppercase tracking-wider text-saffron-700">
                 Adaptive Follow-Up Probe
               </div>
-              <p className="mt-1 text-sm font-bold text-ink">{resumeAwareFollowUp}</p>
+
+              <p className="mt-1 text-sm font-bold text-ink">
+                {resumeAwareFollowUp}
+              </p>
+
               <p className="mt-2 text-xs leading-relaxed text-ink-muted">
-                <strong>Model Answer Structure:</strong> {question.sampleOutline}
+                <strong>Model Answer Structure:</strong>{" "}
+                {question.sampleOutline}
               </p>
             </div>
           )}
@@ -713,6 +854,7 @@ export function MockInterviewSimulator({
             >
               Explore full {track.shortName} question bank &amp; syllabus →
             </Link>
+
             <a
               href={SITE_CONFIG.appUrl}
               target="_blank"
