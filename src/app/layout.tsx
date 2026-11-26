@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
@@ -21,19 +22,30 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_CONFIG.url),
+
   title: {
-    default: "PlacementPrep India — Free Voice AI Mock Interviews | Powered by AcePrep",
-    template: "%s | PlacementPrep India",
+    default:
+      "PlacementPrep India — Free Voice AI Mock Interviews | Powered by AcePrep",
+    template: "%s",
   },
+
   description: SITE_CONFIG.description,
   keywords: [...SITE_CONFIG.keywords],
-  authors: [{ name: "AcePrep Capstone Team (Arshit Anand, Pranjal Kumar, Sumit Yadav)" }],
+
+  authors: [
+    {
+      name: "AcePrep Capstone Team (Arshit Anand, Pranjal Kumar, Sumit Yadav)",
+    },
+  ],
+
   creator: "PlacementPrep India (Powered by AcePrep)",
   publisher: "PlacementPrep India",
+
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
     shortcut: "/icon.svg",
   },
+
   ...(gscVerification
     ? {
         verification: {
@@ -41,12 +53,14 @@ export const metadata: Metadata = {
         },
       }
     : {}),
+
   openGraph: {
     type: "website",
     locale: SITE_CONFIG.locale,
     url: SITE_CONFIG.url,
     siteName: SITE_CONFIG.fullBrand,
-    title: "PlacementPrep India — Free Voice AI Mock Interviews | Powered by AcePrep",
+    title:
+      "PlacementPrep India — Free Voice AI Mock Interviews | Powered by AcePrep",
     description: SITE_CONFIG.description,
     images: [
       {
@@ -57,9 +71,11 @@ export const metadata: Metadata = {
       },
     ],
   },
+
   twitter: {
     card: "summary_large_image",
-    title: "PlacementPrep India — Free Voice AI Mock Interviews | Powered by AcePrep",
+    title:
+      "PlacementPrep India — Free Voice AI Mock Interviews | Powered by AcePrep",
     description: SITE_CONFIG.description,
     images: ["/og-image.svg"],
   },
@@ -83,22 +99,29 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
+
         <JsonLd data={getOrganizationJsonLd()} />
         <JsonLd data={getWebsiteJsonLd()} />
       </head>
+
       <body className="min-h-screen bg-canvas font-sans text-ink antialiased">
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
+
         <Navbar />
+
         <main id="main-content">{children}</main>
+
         <Footer />
+
         {gaId && (
           <>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
               strategy="afterInteractive"
             />
+
             <Script id="ga4-init" strategy="afterInteractive">
               {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${gaId}');`}
             </Script>
