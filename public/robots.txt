@@ -1,4 +1,5 @@
+
 User-agent: *
 Allow: /
 
-Sitemap: https://placementprepind.online/sitemap.xml
+Sitemap: https://www.placementprepind.online/sitemap.xml
