@@ -69,10 +69,11 @@ export function buildPageMetadata({
   publishedTime?: string;
 }): Metadata {
   const canonical = absoluteUrl(path);
-  const fullTitle = title.includes("PlacementPrep India")
-    ? title
-    : `${title} | PlacementPrep India`;
+  const cleanTitle = title
+    .replace(/\s*\|\s*PlacementPrep India/gi, "")
+    .trim();
 
+  const fullTitle = `${cleanTitle} | PlacementPrep India`;
   return {
     title: fullTitle,
     description,
