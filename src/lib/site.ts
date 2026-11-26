@@ -1,11 +1,16 @@
+
 import type { Metadata } from "next";
 
 export const SITE_CONFIG = {
   name: "PlacementPrep India",
   poweredBy: "AcePrep",
   fullBrand: "PlacementPrep India — Powered by AcePrep",
-  tagline: "Free Autonomous Voice-Based AI Mock Interviews for Indian Campus Placements",
-  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://www.placementprepind.online").replace(/\/$/, ""),
+  tagline:
+    "Free Autonomous Voice-Based AI Mock Interviews for Indian Campus Placements",
+  url: (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://www.placementprepind.online"
+  ).replace(/\/$/, ""),
   domain: "placementprepind.online",
   appUrl: "https://aceprep-eight.vercel.app",
   repoUrl: "https://github.com/Arshit010/AcePrep",
@@ -30,26 +35,35 @@ export const SITE_CONFIG = {
       name: "Arshit Anand",
       enrollment: "e23cseu0649",
       role: "Project Lead & Full-Stack Developer",
-      contribution: "Architecture, prototype implementation, technology selection",
+      contribution:
+        "Architecture, prototype implementation, technology selection",
     },
     {
       name: "Pranjal Kumar",
       enrollment: "e23cseu0636",
       role: "Requirements & Research Lead",
-      contribution: "Problem statement, SDG mapping, literature review, gap analysis, stakeholder & requirements analysis",
+      contribution:
+        "Problem statement, SDG mapping, literature review, gap analysis, stakeholder & requirements analysis",
     },
     {
       name: "Sumit Yadav",
       enrollment: "e23cseu0812",
       role: "Feasibility, Risk & Quality Lead",
-      contribution: "Economic, legal & operational feasibility, risk register, test & validation plan, timeline & KPIs",
+      contribution:
+        "Economic, legal & operational feasibility, risk register, test & validation plan, timeline & KPIs",
     },
   ],
 } as const;
 
 export function absoluteUrl(path = "/"): string {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  const withTrailing = cleanPath === "/" ? "/" : cleanPath.endsWith("/") ? cleanPath : `${cleanPath}/`;
+  const withTrailing =
+    cleanPath === "/"
+      ? "/"
+      : cleanPath.endsWith("/")
+        ? cleanPath
+        : `${cleanPath}/`;
+
   return `${SITE_CONFIG.url}${withTrailing}`;
 }
 
@@ -69,11 +83,13 @@ export function buildPageMetadata({
   publishedTime?: string;
 }): Metadata {
   const canonical = absoluteUrl(path);
+
   const cleanTitle = title
     .replace(/\s*\|\s*PlacementPrep India/gi, "")
     .trim();
 
   const fullTitle = `${cleanTitle} | PlacementPrep India`;
+
   return {
     title: fullTitle,
     description,
@@ -118,32 +134,51 @@ export function buildPageMetadata({
   };
 }
 
-export function getOrganizationJsonLd() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    name: SITE_CONFIG.name,
-    alternateName: "AcePrep",
-    url: SITE_CONFIG.url,
-    logo: `${SITE_CONFIG.url}/icon.svg`,
-    description: SITE_CONFIG.description,
-    sameAs: [SITE_CONFIG.appUrl, SITE_CONFIG.repoUrl],
-    areaServed: {
-      "@type": "Country",
-      name: "India",
-    },
-  };
-}
+/**
+ * Organization and website structured data.
+ * AcePrep is represented as a separate associated brand.
+ */
+export function getSiteJsonLd() {
+  const siteUrl = `${SITE_CONFIG.url}/`;
 
-export function getWebsiteJsonLd() {
   return {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: SITE_CONFIG.name,
-    alternateName: SITE_CONFIG.fullBrand,
-    url: SITE_CONFIG.url,
-    inLanguage: "en-IN",
-    description: SITE_CONFIG.description,
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}#organization`,
+        name: "PlacementPrep India",
+        url: siteUrl,
+        description:
+          "PlacementPrep India and AcePrep are connected projects focused on AI-powered mock interviews, adaptive interview preparation, CS and HR tracks, and interview scoring for Indian campus placements.",
+        brand: [
+          {
+            "@type": "Brand",
+            name: "PlacementPrep India",
+          },
+          {
+            "@type": "Brand",
+            name: "AcePrep",
+          },
+        ],
+        areaServed: {
+          "@type": "Country",
+          name: "India",
+        },
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}#website`,
+        name: "PlacementPrep India",
+        url: siteUrl,
+        publisher: {
+          "@id": `${siteUrl}#organization`,
+        },
+        inLanguage: SITE_CONFIG.language,
+        description:
+          "Free AI-powered voice mock interviews for Indian campus placements, with adaptive follow-ups and CS and HR preparation tracks.",
+      },
+    ],
   };
 }
 
@@ -153,7 +188,8 @@ export function getSoftwareApplicationJsonLd() {
     "@type": "SoftwareApplication",
     name: "PlacementPrep India (Powered by AcePrep)",
     applicationCategory: "EducationalApplication",
-    operatingSystem: "Web Browser (Chrome, Safari, Android, iOS, Desktop)",
+    operatingSystem:
+      "Web Browser (Chrome, Safari, Android, iOS, Desktop)",
     url: SITE_CONFIG.url,
     installUrl: SITE_CONFIG.appUrl,
     offers: {
@@ -172,7 +208,9 @@ export function getSoftwareApplicationJsonLd() {
   };
 }
 
-export function getBreadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
+export function getBreadcrumbJsonLd(
+  items: Array<{ name: string; path: string }>
+) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -185,7 +223,9 @@ export function getBreadcrumbJsonLd(items: Array<{ name: string; path: string }>
   };
 }
 
-export function getFaqJsonLd(faqs: Array<{ question: string; answer: string }>) {
+export function getFaqJsonLd(
+  faqs: Array<{ question: string; answer: string }>
+) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
