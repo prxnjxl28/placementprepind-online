@@ -26,7 +26,7 @@ import { FaqAccordion } from "@/components/FaqAccordion";
 import { MockInterviewSimulator } from "@/components/MockInterviewSimulator";
 
 export const metadata = buildPageMetadata({
-  title: "PlacementPrep India — Free Voice AI Mock Interviews | Powered by AcePrep",
+  title: "Free Voice AI Mock Interviews for Indian Campus Placements | Powered by AcePrep",
   description:
     "Crack Indian campus placements with free spoken AI mock interviews on PlacementPrep India, powered by AcePrep. 9 CS & HR tracks, resume-aware follow-ups, and a transparent 0–10 rubric.",
   path: "/",
