@@ -5,7 +5,7 @@ export const SITE_CONFIG = {
   poweredBy: "AcePrep",
   fullBrand: "PlacementPrep India — Powered by AcePrep",
   tagline: "Free Autonomous Voice-Based AI Mock Interviews for Indian Campus Placements",
-  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://placementprepind.online").replace(/\/$/, ""),
+  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://www.placementprepind.online").replace(/\/$/, ""),
   domain: "placementprepind.online",
   appUrl: "https://aceprep-eight.vercel.app",
   repoUrl: "https://github.com/Arshit010/AcePrep",
