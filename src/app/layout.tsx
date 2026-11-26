@@ -2,13 +2,14 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
+
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { JsonLd } from "@/components/JsonLd";
+
 import {
   SITE_CONFIG,
-  getOrganizationJsonLd,
-  getWebsiteJsonLd,
+  getSiteJsonLd,
 } from "@/lib/site";
 
 const gscVerification = process.env.NEXT_PUBLIC_GSC_VERIFICATION;
@@ -90,18 +91,19 @@ export default function RootLayout({
     <html lang="en-IN">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+
         <link
           href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
 
-        <JsonLd data={getOrganizationJsonLd()} />
-        <JsonLd data={getWebsiteJsonLd()} />
+        <JsonLd data={getSiteJsonLd()} />
       </head>
 
       <body className="min-h-screen bg-canvas font-sans text-ink antialiased">
