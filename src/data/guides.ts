@@ -1,3 +1,4 @@
+
 export interface GuideSection {
   heading: string;
   paragraphs: string[];
@@ -77,6 +78,7 @@ export const PREP_GUIDES: GuideData[] = [
         paragraphs: [
           "Interview fluency is a motor and cognitive skill improved primarily by repetition with honest feedback. Instead of cramming 100 passive articles the night before Day 1, schedule three 15-minute spoken mock interviews per week across your weakest tracks.",
           "Review your transcript and rubric sub-scores (Accuracy, Depth, Communication Structure) after every session, then re-attempt the same domain a few days later to verify measurable score improvement.",
+          "Students preparing for campus placements should also understand how search engines discover and evaluate useful online resources. Explore practical SEO insights from SEOna Labs and consult Google's official SEO Starter Guide to learn how high-quality content can be structured for better search visibility.",
         ],
       },
     ],
