@@ -7,17 +7,27 @@ export const SITE_CONFIG = {
   fullBrand: "PlacementPrep India — Powered by AcePrep",
   tagline:
     "Free Autonomous Voice-Based AI Mock Interviews for Indian Campus Placements",
+
   url: (
     process.env.NEXT_PUBLIC_SITE_URL ||
     "https://www.placementprepind.online"
   ).replace(/\/$/, ""),
+
   domain: "placementprepind.online",
+
+  // Main SEO website
+  repoUrl: "https://github.com/prxnjxl28/placementprepind-online",
+
+  // Connected AI interviewing application
   appUrl: "https://aceprep-eight.vercel.app",
-  repoUrl: "https://github.com/Arshit010/AcePrep",
+  appRepoUrl: "https://github.com/Arshit010/AcePrep",
+
   locale: "en_IN",
   language: "en-IN",
+
   description:
     "Practice spoken technical and HR mock interviews free on PlacementPrep India, powered by AcePrep. Adaptive resume-aware AI follow-ups, 9 CS & HR tracks, and a transparent 0–10 scoring rubric built for Indian campus placements.",
+
   keywords: [
     "placement preparation India",
     "AI mock interview India",
@@ -30,6 +40,7 @@ export const SITE_CONFIG = {
     "resume based mock interview",
     "B.Tech placement preparation",
   ],
+
   team: [
     {
       name: "Arshit Anand",
@@ -57,6 +68,7 @@ export const SITE_CONFIG = {
 
 export function absoluteUrl(path = "/"): string {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
   const withTrailing =
     cleanPath === "/"
       ? "/"
@@ -68,22 +80,20 @@ export function absoluteUrl(path = "/"): string {
 }
 
 /**
- * Converts a date-only string (YYYY-MM-DD) to a full ISO 8601 datetime string
- * with Indian Standard Time offset (+05:30), which is required for valid
- * Article schema datePublished/dateModified per Google's Rich Results Test.
- *
- * If the input already contains a time component or timezone (e.g. 'T' or '+'),
- * it is returned unchanged so existing valid timestamps are never overwritten.
- *
- * @example formatIsoDateIST("2026-10-18") → "2026-10-18T00:00:00+05:30"
+ * Converts date-only strings into ISO 8601 datetime strings
+ * with the Indian Standard Time offset.
  */
 export function formatIsoDateIST(dateStr: string): string {
   if (!dateStr) return dateStr;
-  // If the string already contains a time separator or timezone, leave it as-is
-  if (dateStr.includes("T") || dateStr.includes("+") || dateStr.includes("Z")) {
+
+  if (
+    dateStr.includes("T") ||
+    dateStr.includes("+") ||
+    dateStr.includes("Z")
+  ) {
     return dateStr;
   }
-  // Date-only value — append midnight IST
+
   return `${dateStr}T00:00:00+05:30`;
 }
 
@@ -114,9 +124,11 @@ export function buildPageMetadata({
     title: fullTitle,
     description,
     keywords: [...SITE_CONFIG.keywords, ...keywords],
+
     alternates: {
       canonical,
     },
+
     openGraph: {
       title: fullTitle,
       description,
@@ -134,12 +146,14 @@ export function buildPageMetadata({
         },
       ],
     },
+
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description,
       images: [`${SITE_CONFIG.url}/og-image.svg`],
     },
+
     robots: {
       index: true,
       follow: true,
@@ -155,8 +169,7 @@ export function buildPageMetadata({
 }
 
 /**
- * Organization and website structured data.
- * AcePrep is represented as a separate associated brand.
+ * Combined Organization and WebSite structured data.
  */
 export function getSiteJsonLd() {
   const siteUrl = `${SITE_CONFIG.url}/`;
@@ -199,6 +212,58 @@ export function getSiteJsonLd() {
           "Free AI-powered voice mock interviews for Indian campus placements, with adaptive follow-ups and CS and HR preparation tracks.",
       },
     ],
+  };
+}
+
+/**
+ * Separate Organization schema for layout.tsx.
+ */
+export function getOrganizationJsonLd() {
+  const siteUrl = `${SITE_CONFIG.url}/`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${siteUrl}#organization`,
+    name: "PlacementPrep India",
+    url: siteUrl,
+    description:
+      "PlacementPrep India and AcePrep are connected projects focused on AI-powered mock interviews, adaptive interview preparation, CS and HR tracks, and interview scoring for Indian campus placements.",
+    brand: [
+      {
+        "@type": "Brand",
+        name: "PlacementPrep India",
+      },
+      {
+        "@type": "Brand",
+        name: "AcePrep",
+      },
+    ],
+    areaServed: {
+      "@type": "Country",
+      name: "India",
+    },
+  };
+}
+
+/**
+ * Separate WebSite schema for layout.tsx.
+ */
+export function getWebsiteJsonLd() {
+  const siteUrl = `${SITE_CONFIG.url}/`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}#website`,
+    name: "PlacementPrep India",
+    url: siteUrl,
+    publisher: {
+      "@id": `${siteUrl}#organization`,
+    },
+    inLanguage: SITE_CONFIG.language,
+    description:
+      "Free AI-powered voice mock interviews for Indian campus placements, with adaptive follow-ups and CS and HR preparation tracks.",
   };
 }
 
