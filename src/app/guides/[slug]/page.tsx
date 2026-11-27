@@ -3,11 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, BookOpen, CheckCircle2, Clock } from "lucide-react";
 import { PREP_GUIDES, getGuideBySlug } from "@/data/guides";
+import type { RichParagraph, RichLink } from "@/data/guides";
 import { getTrackBySlug } from "@/data/tracks";
 import {
   SITE_CONFIG,
   absoluteUrl,
   buildPageMetadata,
+  formatIsoDateIST,
   getBreadcrumbJsonLd,
 } from "@/lib/site";
 import { JsonLd } from "@/components/JsonLd";
@@ -52,8 +54,8 @@ export default async function GuideDetailPage({
     "@type": "Article",
     headline: guide.title,
     description: guide.seoDescription,
-    datePublished: guide.publishedAt,
-    dateModified: guide.updatedAt,
+    datePublished: formatIsoDateIST(guide.publishedAt),
+    dateModified: formatIsoDateIST(guide.updatedAt),
     inLanguage: "en-IN",
     mainEntityOfPage: absoluteUrl(`/guides/${guide.slug}/`),
     author: {
@@ -135,9 +137,36 @@ export default async function GuideDetailPage({
             <section key={sec.heading}>
               <h2 className="text-2xl font-extrabold text-ink">{sec.heading}</h2>
               <div className="mt-3 space-y-4 text-base leading-relaxed text-ink-muted">
-                {sec.paragraphs.map((p, idx) => (
-                  <p key={idx}>{p}</p>
-                ))}
+                {sec.paragraphs.map((p, idx) =>
+                  typeof p === "string" ? (
+                    <p key={idx}>{p}</p>
+                  ) : (
+                    // RichParagraph: render segments as inline text + anchor nodes
+                    // No dangerouslySetInnerHTML — each segment is typed and
+                    // rendered as a React element.
+                    <p key={idx}>
+                      {(p as RichParagraph).segments.map((seg, sIdx) =>
+                        typeof seg === "string" ? (
+                          seg
+                        ) : (
+                          <a
+                            key={sIdx}
+                            href={(seg as RichLink).href}
+                            target={(seg as RichLink).external ? "_blank" : undefined}
+                            rel={
+                              (seg as RichLink).external
+                                ? "noopener noreferrer"
+                                : undefined
+                            }
+                            className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800"
+                          >
+                            {(seg as RichLink).text}
+                          </a>
+                        )
+                      )}
+                    </p>
+                  )
+                )}
               </div>
               {sec.bullets && (
                 <ul className="mt-4 space-y-2.5 rounded-2xl border border-border bg-white p-5 text-sm leading-relaxed text-ink-muted">

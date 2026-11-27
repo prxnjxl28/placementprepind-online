@@ -472,6 +472,7 @@ export function MockInterviewSimulator({
     setInterimText("");
     setEvaluation(evaluateAnswer(combined, question, track.slug === "hr"));
     setShowFollowUp(true);
+
   };
 
   const primarySkill = resumeSkill.split(",")[0]?.trim();

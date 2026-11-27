@@ -67,6 +67,26 @@ export function absoluteUrl(path = "/"): string {
   return `${SITE_CONFIG.url}${withTrailing}`;
 }
 
+/**
+ * Converts a date-only string (YYYY-MM-DD) to a full ISO 8601 datetime string
+ * with Indian Standard Time offset (+05:30), which is required for valid
+ * Article schema datePublished/dateModified per Google's Rich Results Test.
+ *
+ * If the input already contains a time component or timezone (e.g. 'T' or '+'),
+ * it is returned unchanged so existing valid timestamps are never overwritten.
+ *
+ * @example formatIsoDateIST("2026-10-18") → "2026-10-18T00:00:00+05:30"
+ */
+export function formatIsoDateIST(dateStr: string): string {
+  if (!dateStr) return dateStr;
+  // If the string already contains a time separator or timezone, leave it as-is
+  if (dateStr.includes("T") || dateStr.includes("+") || dateStr.includes("Z")) {
+    return dateStr;
+  }
+  // Date-only value — append midnight IST
+  return `${dateStr}T00:00:00+05:30`;
+}
+
 export function buildPageMetadata({
   title,
   description,

@@ -1,7 +1,27 @@
+/** A single link node inside a rich paragraph. */
+export interface RichLink {
+  text: string;
+  href: string;
+  external?: boolean;
+}
+
+/**
+ * A paragraph that may contain inline links alongside plain text segments.
+ * When type is "rich", render segments rather than the paragraph as a plain string.
+ */
+export interface RichParagraph {
+  type: "rich";
+  segments: (string | RichLink)[];
+}
 
 export interface GuideSection {
   heading: string;
-  paragraphs: string[];
+  /**
+   * Array of paragraphs. Each item is either:
+   * - a plain string (rendered as-is), or
+   * - a RichParagraph object (rendered with inline anchor links).
+   */
+  paragraphs: (string | RichParagraph)[];
   bullets?: string[];
 }
 
@@ -37,7 +57,7 @@ export const PREP_GUIDES: GuideData[] = [
       "software fresher interview rounds India",
     ],
     category: "Placement Roadmap",
-    readingTime: "8 min read",
+    readingTime: "4 min read",
     publishedAt: "2026-10-18",
     updatedAt: "2026-11-20",
     excerpt:
@@ -78,7 +98,24 @@ export const PREP_GUIDES: GuideData[] = [
         paragraphs: [
           "Interview fluency is a motor and cognitive skill improved primarily by repetition with honest feedback. Instead of cramming 100 passive articles the night before Day 1, schedule three 15-minute spoken mock interviews per week across your weakest tracks.",
           "Review your transcript and rubric sub-scores (Accuracy, Depth, Communication Structure) after every session, then re-attempt the same domain a few days later to verify measurable score improvement.",
-          "Students preparing for campus placements should also understand how search engines discover and evaluate useful online resources. Explore practical SEO insights from SEOna Labs and consult Google's official SEO Starter Guide to learn how high-quality content can be structured for better search visibility.",
+          {
+            type: "rich",
+            segments: [
+              "Students preparing for campus placements should also understand how search engines discover and evaluate useful online resources. Explore practical SEO insights from ",
+              {
+                text: "SEOna Labs",
+                href: "https://seonalabs.com",
+                external: true,
+              },
+              " and consult ",
+              {
+                text: "Google\u2019s SEO Starter Guide",
+                href: "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
+                external: true,
+              },
+              " to learn how high-quality content can be structured for better search visibility.",
+            ],
+          },
         ],
       },
     ],

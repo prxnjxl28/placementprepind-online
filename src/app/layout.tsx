@@ -37,7 +37,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_CONFIG.url),
   title: {
-    default: "PlacementPrep India — Free Voice AI Mock Interviews | Powered by AcePrep",
+    default: "PlacementPrep India Ã¢â‚¬â€ Free Voice AI Mock Interviews | Powered by AcePrep",
     template: "%s | PlacementPrep India",
   },
   description: SITE_CONFIG.description,
@@ -65,20 +65,20 @@ export const metadata: Metadata = {
     locale: SITE_CONFIG.locale,
     url: SITE_CONFIG.url,
     siteName: SITE_CONFIG.fullBrand,
-    title: "PlacementPrep India — Free Voice AI Mock Interviews | Powered by AcePrep",
+    title: "PlacementPrep India Ã¢â‚¬â€ Free Voice AI Mock Interviews | Powered by AcePrep",
     description: SITE_CONFIG.description,
     images: [
       {
         url: "/og-image.svg",
         width: 1200,
         height: 630,
-        alt: "PlacementPrep India — Voice-Based AI Mock Interview Platform powered by AcePrep",
+        alt: "PlacementPrep India Ã¢â‚¬â€ Voice-Based AI Mock Interview Platform powered by AcePrep",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PlacementPrep India — Free Voice AI Mock Interviews | Powered by AcePrep",
+    title: "PlacementPrep India Ã¢â‚¬â€ Free Voice AI Mock Interviews | Powered by AcePrep",
     description: SITE_CONFIG.description,
     images: ["/og-image.svg"],
   },
@@ -95,6 +95,7 @@ export default function RootLayout({
       className={`${jakarta.variable} ${jetbrains.variable}`}
     >
       <head>
+        
         <JsonLd data={getOrganizationJsonLd()} />
         <JsonLd data={getWebsiteJsonLd()} />
       </head>
